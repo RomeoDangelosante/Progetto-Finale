@@ -182,7 +182,6 @@ flowchart LR
 
     %% Attori
     V["👤 Visitatore"]
-    U["👤 Utente autenticato"]
     B["🤖 Bot di Trading"]
     API["🌐 API Broker MetaTrader 5"]
 
@@ -211,18 +210,13 @@ flowchart LR
 
     end
 
-    %% Generalizzazione attori
-    V -->|generalizzazione| U
-
-    %% Visitatore → sito
+    %% Visitatore → sito (tutte le pagine)
     V --> UC1
     V --> UC2
     V --> UC3
     V --> UC4
-
-    %% Utente → sito (funzioni aggiuntive)
-    U --> UC5
-    U --> UC6
+    V --> UC5
+    V --> UC6
 
     %% include e extend nel sito
     UC6 -.->|include| UC7
