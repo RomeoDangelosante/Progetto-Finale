@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}API · XAU/USD Bot{% endblock %}
+{% block materia %}TPSIT · Architettura API e comunicazione client/server{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="materia-tag">TPSIT</div>
+  <h1>Architettura API</h1>
+  <p>Come il bot comunica con il broker MetaTrader 5 tramite API REST: richieste HTTP, formato JSON, autenticazione.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Schema client/server</div>
+  <div class="flow-diagram">
+    <div class="flow-step"><div class="step-num">Client</div>Bot Python su PC locale</div>
+    <div class="flow-arrow">→ HTTP/HTTPS →</div>
+    <div class="flow-step"><div class="step-num">Server</div>API broker MetaTrader 5</div>
+    <div class="flow-arrow">→ JSON →</div>
+    <div class="flow-step"><div class="step-num">Risposta</div>Dati di mercato / conferma ordine</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Endpoint principali</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>GET · Recupero dati di mercato</h3>
+      <p>Il bot richiede le candele OHLC dell'oro in tempo reale:</p>
+      <div class="code-block">
+<span class="cm"># Richiesta HTTP GET</span>
+GET /api/v1/rates/XAUUSD?timeframe=H1
+
+<span class="cm"># Headers di autenticazione</span>
+Authorization: Bearer {API_KEY}
+Content-Type: application/json
+
+<span class="cm"># Risposta JSON del server</span>
+{
+  <span class="str">"symbol"</span>: <span class="str">"XAUUSD"</span>,
+  <span class="str">"timeframe"</span>: <span class="str">"H1"</span>,
+  <span class="str">"data"</span>: [
+    {
+      <span class="str">"time"</span>: <span class="str">"2024-01-15T10:00:00"</span>,
+      <span class="str">"open"</span>:  2024.50,
+      <span class="str">"high"</span>:  2031.80,
+      <span class="str">"low"</span>:   2018.30,
+      <span class="str">"close"</span>: 2028.90
+    }
+  ]
+}
+      </div>
+    </div>
+    <div class="card">
+      <h3>POST · Apertura ordine</h3>
+      <p>Quando il bot rileva un segnale, invia un ordine al broker:</p>
+      <div class="code-block">
+<span class="cm"># Richiesta HTTP POST</span>
+POST /api/v1/orders
+
+<span class="cm"># Body della richiesta (JSON)</span>
+{
+  <span class="str">"symbol"</span>:   <span class="str">"XAUUSD"</span>,
+  <span class="str">"action"</span>:   <span class="str">"buy"</span>,
+  <span class="str">"volume"</span>:   0.01,
+  <span class="str">"sl"</span>:       2010.00,  <span class="cm"># stop loss</span>
+  <span class="str">"tp"</span>:       2060.00   <span class="cm"># take profit</span>
+}
+
+<span class="cm"># Risposta in caso di successo</span>
+{
+  <span class="str">"status"</span>:    <span class="str">"ok"</span>,
+  <span class="str">"order_id"</span>:  394821,
+  <span class="str">"price"</span>:     2028.90,
+  <span class="str">"timestamp"</span>: <span class="str">"2024-01-15T10:02:31"</span>
+}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Codici di risposta HTTP</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Codice</th><th>Significato</th><th>Quando si verifica</th></tr>
+        </thead>
+        <tbody>
+          <tr><td style="color:var(--green)">200 OK</td><td>Successo</td><td>Dati ricevuti correttamente</td></tr>
+          <tr><td style="color:var(--green)">201 Created</td><td>Ordine creato</td><td>Ordine inviato con successo</td></tr>
+          <tr><td style="color:var(--gold)">400 Bad Request</td><td>Richiesta errata</td><td>Parametri mancanti o errati</td></tr>
+          <tr><td style="color:var(--red)">401 Unauthorized</td><td>Non autorizzato</td><td>API key mancante o scaduta</td></tr>
+          <tr><td style="color:var(--red)">429 Too Many Requests</td><td>Limite superato</td><td>Troppe richieste al secondo</td></tr>
+          <tr><td style="color:var(--red)">500 Internal Server Error</td><td>Errore server</td><td>Problema lato broker</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Chiamata API in Python</div>
+  <div class="card">
+    <h3>Implementazione con libreria requests</h3>
+    <div class="code-block">
+<span class="kw">import</span> requests
+<span class="kw">import</span> json
+
+API_KEY  = <span class="str">"il_tuo_api_key"</span>
+BASE_URL = <span class="str">"https://api.broker.com/v1"</span>
+
+<span class="kw">def</span> get_candele(simbolo, timeframe=<span class="str">"H1"</span>, n=100):
+    <span class="cm">"""Recupera le ultime n candele del simbolo"""</span>
+    url = f<span class="str">"{BASE_URL}/rates/{simbolo}"</span>
+    headers = {<span class="str">"Authorization"</span>: f<span class="str">"Bearer {API_KEY}"</span>}
+    params  = {<span class="str">"timeframe"</span>: timeframe, <span class="str">"count"</span>: n}
+
+    risposta = requests.get(url, headers=headers, params=params)
+
+    <span class="kw">if</span> risposta.status_code == 200:
+        <span class="kw">return</span> risposta.json()[<span class="str">"data"</span>]
+    <span class="kw">else</span>:
+        <span class="kw">raise</span> Exception(f<span class="str">"Errore {risposta.status_code}"</span>)
+
+<span class="kw">def</span> apri_ordine(simbolo, azione, volume, sl, tp):
+    <span class="cm">"""Invia un ordine al broker"""</span>
+    url  = f<span class="str">"{BASE_URL}/orders"</span>
+    body = {
+        <span class="str">"symbol"</span>: simbolo, <span class="str">"action"</span>: azione,
+        <span class="str">"volume"</span>: volume,  <span class="str">"sl"</span>: sl, <span class="str">"tp"</span>: tp
+    }
+    risposta = requests.post(
+        url,
+        headers={<span class="str">"Authorization"</span>: f<span class="str">"Bearer {API_KEY}"</span>},
+        json=body
+    )
+    <span class="kw">return</span> risposta.json()
+    </div>
+  </div>
+</div>
+{% endblock %}

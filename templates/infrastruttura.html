@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Infrastruttura · XAU/USD Bot{% endblock %}
+{% block materia %}Sistemi e Reti · Infrastruttura di rete e sicurezza{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="materia-tag">Sistemi e Reti</div>
+  <h1>Infrastruttura del Sistema</h1>
+  <p>Architettura di rete, protocolli di comunicazione, sicurezza e deployment del bot su PC locale.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Architettura di rete</div>
+  <div class="flow-diagram">
+    <div class="flow-step"><div class="step-num">Locale</div>PC Windows · Bot Python · MetaTrader 5</div>
+    <div class="flow-arrow">→ TCP/IP →</div>
+    <div class="flow-step"><div class="step-num">Router</div>NAT · Firewall · DNS</div>
+    <div class="flow-arrow">→ HTTPS →</div>
+    <div class="flow-step"><div class="step-num">Internet</div>Rete pubblica</div>
+    <div class="flow-arrow">→ TLS 1.3 →</div>
+    <div class="flow-step"><div class="step-num">Broker</div>Server API MetaTrader</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Protocolli utilizzati</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>TCP/IP · Livello trasporto</h3>
+      <p>Tutta la comunicazione tra il bot e il server del broker avviene su protocollo TCP/IP, che garantisce la consegna ordinata e affidabile dei pacchetti. Ogni richiesta API è una connessione TCP sulla porta 443 (HTTPS).</p>
+    </div>
+    <div class="card">
+      <h3>HTTPS + TLS 1.3 · Sicurezza</h3>
+      <p>Le comunicazioni sono cifrate con TLS 1.3, il protocollo di sicurezza più recente. Questo protegge i dati in transito — ordini di trading, API key — da eventuali intercettazioni sulla rete.</p>
+    </div>
+    <div class="card">
+      <h3>DNS · Risoluzione nomi</h3>
+      <p>Il bot risolve il dominio del broker (es. <code style="color:var(--gold)">api.broker.com</code>) tramite DNS prima di ogni connessione. In caso di problemi DNS la connessione fallisce — è il primo punto di controllo.</p>
+    </div>
+    <div class="card">
+      <h3>HTTP/1.1 + REST · Applicazione</h3>
+      <p>L'API del broker segue l'architettura REST: ogni risorsa (ordini, prezzi, account) ha un endpoint URL dedicato. I metodi HTTP usati sono <strong>GET</strong> per leggere e <strong>POST</strong> per scrivere.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Sicurezza — API Key</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Autenticazione con API Key</h3>
+      <p>Il bot si autentica al broker tramite una API key univoca. La chiave è:</p>
+      <ul style="margin-top:0.8rem">
+        <li>Generata dal broker all'attivazione</li>
+        <li>Salvata in un file <code style="color:var(--gold)">.env</code> locale (mai nel codice)</li>
+        <li>Inviata in ogni richiesta come header HTTP</li>
+        <li>Revocabile in qualsiasi momento dal pannello broker</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Best practice implementate</h3>
+      <ul>
+        <li>API key mai scritta nel codice sorgente</li>
+        <li>File <code style="color:var(--gold)">.env</code> escluso dal repository (gitignore)</li>
+        <li>HTTPS obbligatorio — nessuna richiesta HTTP non cifrata</li>
+        <li>Timeout sulle richieste per evitare blocchi</li>
+        <li>Gestione errori HTTP con retry automatico</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Configurazione del sistema</div>
+  <div class="card">
+    {% for c in configs %}
+    <div class="config-row">
+      <span class="config-key">{{ c.nome }}</span>
+      <span style="color:var(--muted); font-size:0.82rem; flex:1; margin: 0 1rem">{{ c.descrizione }}</span>
+      <span class="config-val">{{ c.valore }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

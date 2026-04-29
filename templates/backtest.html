@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block title %}Backtest · XAU/USD Bot{% endblock %}
+{% block materia %}GPOI · Risultati del backtest su MetaTrader 5{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="materia-tag">GPOI · Informatica</div>
+  <h1>Risultati del Backtest</h1>
+  <p>Simulazione storica su XAU/USD con deposito iniziale $1.000 · Dati reali da MetaTrader 5</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">779</div>
+    <div class="stat-label">Operazioni totali</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--green)">$5.606</div>
+    <div class="stat-label">Profitto netto</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">56.35%</div>
+    <div class="stat-label">Win rate</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">1.73</div>
+    <div class="stat-label">Fattore di profitto</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">7.51</div>
+    <div class="stat-label">Indice di Sharpe</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color:var(--red)">29.3%</div>
+    <div class="stat-label">Drawdown massimo</div>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="chart-box">
+    <h3>Profitto cumulativo nel tempo</h3>
+    <canvas id="chartCumul" height="200"></canvas>
+  </div>
+  <div class="chart-box">
+    <h3>Profitto mensile</h3>
+    <canvas id="chartMensile" height="200"></canvas>
+  </div>
+</div>
+
+<div class="grid-2">
+  <div class="chart-box">
+    <h3>Distribuzione win/loss</h3>
+    <canvas id="chartWinLoss" height="200"></canvas>
+  </div>
+  <div class="chart-box">
+    <h3>Buy vs Sell</h3>
+    <canvas id="chartBuySell" height="200"></canvas>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Ultime operazioni registrate</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Apertura</th>
+            <th>Tipo</th>
+            <th>Entrata</th>
+            <th>Uscita</th>
+            <th>Profitto</th>
+            <th>Esito</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for op in operazioni[:50] %}
+          <tr>
+            <td style="color:var(--muted)">{{ op.id }}</td>
+            <td>{{ op.data_apertura }}</td>
+            <td><span class="badge badge-{{ op.tipo }}">{{ op.tipo.upper() }}</span></td>
+            <td>{{ op.prezzo_entrata }}</td>
+            <td>{{ op.prezzo_uscita }}</td>
+            <td style="color: {% if op.profitto > 0 %}var(--green){% else %}var(--red){% endif %}">
+              {% if op.profitto > 0 %}+{% endif %}${{ op.profitto }}
+            </td>
+            <td><span class="badge badge-{{ op.esito }}">{{ op.esito.upper() }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+const gold = '#d4a843';
+const green = '#3ecf8e';
+const red = '#e85d5d';
+const muted = '#8a8880';
+const gridColor = 'rgba(255,255,255,0.05)';
+const defaults = {
+  responsive: true,
+  plugins: { legend: { labels: { color: muted, font: { size: 11 } } } },
+};
+
+// Profitto cumulativo
+fetch('/api/profitto-cumulativo')
+  .then(r => r.json())
+  .then(data => {
+    new Chart(document.getElementById('chartCumul'), {
+      type: 'line',
+      data: {
+        labels: data.map(d => d.data),
+        datasets: [{
+          label: 'Profitto cumulativo ($)',
+          data: data.map(d => d.y),
+          borderColor: gold,
+          backgroundColor: 'rgba(212,168,67,0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+          borderWidth: 2,
+        }]
+      },
+      options: { ...defaults, scales: {
+        x: { ticks: { color: muted, maxTicksLimit: 6 }, grid: { color: gridColor } },
+        y: { ticks: { color: muted }, grid: { color: gridColor } }
+      }}
+    });
+  });
+
+// Profitto mensile
+fetch('/api/stats-mensili')
+  .then(r => r.json())
+  .then(data => {
+    new Chart(document.getElementById('chartMensile'), {
+      type: 'bar',
+      data: {
+        labels: data.map(d => d.periodo),
+        datasets: [{
+          label: 'Profitto ($)',
+          data: data.map(d => d.profitto_totale),
+          backgroundColor: data.map(d => d.profitto_totale > 0 ? 'rgba(62,207,142,0.5)' : 'rgba(232,93,93,0.5)'),
+          borderColor: data.map(d => d.profitto_totale > 0 ? green : red),
+          borderWidth: 1,
+          borderRadius: 4,
+        }]
+      },
+      options: { ...defaults, scales: {
+        x: { ticks: { color: muted }, grid: { color: gridColor } },
+        y: { ticks: { color: muted }, grid: { color: gridColor } }
+      }}
+    });
+  });
+
+// Win/Loss donut
+new Chart(document.getElementById('chartWinLoss'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Win (56.35%)', 'Loss (43.65%)'],
+    datasets: [{ data: [439, 340], backgroundColor: ['rgba(62,207,142,0.7)', 'rgba(232,93,93,0.7)'], borderWidth: 0 }]
+  },
+  options: { ...defaults, cutout: '65%' }
+});
+
+// Buy/Sell
+new Chart(document.getElementById('chartBuySell'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Long/Buy (58.4% win)', 'Short/Sell (53.9% win)'],
+    datasets: [{ data: [423, 356], backgroundColor: ['rgba(74,158,255,0.7)', 'rgba(212,168,67,0.7)'], borderWidth: 0 }]
+  },
+  options: { ...defaults, cutout: '65%' }
+});
+</script>
+{% endblock %}

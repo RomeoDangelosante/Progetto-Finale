@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Home · XAU/USD Trading Bot{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="hero-badge">Progetto di Diploma · Classe 5ª</div>
+  <h1>Trading Algoritmico su <span>XAU/USD</span></h1>
+  <p>Un bot automatico che analizza la struttura storica del grafico dell'oro e apre operazioni in autonomia, senza intervento umano.</p>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.totale_operazioni }}</div>
+    <div class="stat-label">Operazioni simulate</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value" style="color: var(--green)">+${{ stats.profitto_netto }}</div>
+    <div class="stat-label">Profitto netto</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.win_rate }}%</div>
+    <div class="stat-label">Win rate</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">{{ stats.sharpe }}</div>
+    <div class="stat-label">Indice di Sharpe</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-value">${{ stats.deposito }}</div>
+    <div class="stat-label">Deposito iniziale</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Le materie coinvolte</div>
+  <div class="grid-2">
+    <a href="/api" style="text-decoration:none">
+      <div class="card" style="cursor:pointer">
+        <h3>TPSIT · Tecnologie e Progettazione</h3>
+        <p>Architettura client/server, API REST del broker MetaTrader 5, chiamate HTTP, formato JSON dei dati di mercato.</p>
+      </div>
+    </a>
+    <a href="/come-funziona" style="text-decoration:none">
+      <div class="card" style="cursor:pointer">
+        <h3>Informatica · Algoritmi e strutture dati</h3>
+        <p>Logica decisionale del bot, analisi della struttura del grafico, pattern recognition sull'andamento storico del prezzo.</p>
+      </div>
+    </a>
+    <a href="/infrastruttura" style="text-decoration:none">
+      <div class="card" style="cursor:pointer">
+        <h3>Sistemi e Reti · Infrastruttura</h3>
+        <p>Esecuzione su PC locale, connessione di rete sicura, protocolli TCP/IP, autenticazione tramite API key del broker.</p>
+      </div>
+    </a>
+    <a href="/processi" style="text-decoration:none">
+      <div class="card" style="cursor:pointer">
+        <h3>GPOI · Gestione dei processi</h3>
+        <p>Diagramma BPMN del flusso operativo, gestione del rischio, analisi delle performance nel tempo, pianificazione del progetto.</p>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Come funziona in sintesi</div>
+  <div class="flow-diagram">
+    <div class="flow-step">
+      <div class="step-num">01</div>
+      Analisi storica del grafico XAU/USD
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-num">02</div>
+      Riconoscimento pattern e struttura
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-num">03</div>
+      Generazione segnale buy/sell
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-num">04</div>
+      Invio ordine via API broker
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="step-num">05</div>
+      Monitoraggio e chiusura
+    </div>
+  </div>
+</div>
+{% endblock %}

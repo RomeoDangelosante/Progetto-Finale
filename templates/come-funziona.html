@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Come Funziona · XAU/USD Bot{% endblock %}
+{% block materia %}Informatica · Algoritmi e logica del bot{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="materia-tag">Informatica</div>
+  <h1>Come Funziona il Bot</h1>
+  <p>Logica algoritmica, strutture dati e processo decisionale del trading bot su XAU/USD.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Algoritmo di decisione</div>
+  <div class="flow-diagram">
+    <div class="flow-step"><div class="step-num">Input</div>Dati candele XAU/USD (OHLC)</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="step-num">Analisi</div>Struttura storica del grafico</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="step-num">Pattern</div>Riconoscimento segnale</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="step-num">Decisione</div>Buy / Sell / Nessuna azione</div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="step-num">Output</div>Ordine inviato via API</div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Struttura dei dati — candela OHLC</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Formato dati di mercato</h3>
+      <p>Ogni candela ricevuta dall'API del broker contiene 5 valori fondamentali:</p>
+      <div class="code-block">
+{
+  <span class="str">"time"</span>:  <span class="str">"2024-01-15 10:00"</span>,
+  <span class="str">"open"</span>:  2024.50,  <span class="cm"># prezzo apertura</span>
+  <span class="str">"high"</span>:  2031.80,  <span class="cm"># massimo</span>
+  <span class="str">"low"</span>:   2018.30,  <span class="cm"># minimo</span>
+  <span class="str">"close"</span>: 2028.90   <span class="cm"># prezzo chiusura</span>
+}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Logica Python del bot</h3>
+      <p>La strategia principale analizza la struttura dei massimi e minimi:</p>
+      <div class="code-block">
+<span class="kw">def</span> analizza_struttura(candele):
+    highs = [c[<span class="str">'high'</span>] <span class="kw">for</span> c <span class="kw">in</span> candele]
+    lows  = [c[<span class="str">'low'</span>]  <span class="kw">for</span> c <span class="kw">in</span> candele]
+
+    <span class="cm"># higher highs + higher lows = uptrend</span>
+    <span class="kw">if</span> highs[-1] > highs[-2] <span class="kw">and</span> \
+       lows[-1]  > lows[-2]:
+        <span class="kw">return</span> <span class="str">"buy"</span>
+
+    <span class="cm"># lower highs + lower lows = downtrend</span>
+    <span class="kw">elif</span> highs[-1] &lt; highs[-2] <span class="kw">and</span> \
+         lows[-1]  &lt; lows[-2]:
+        <span class="kw">return</span> <span class="str">"sell"</span>
+
+    <span class="kw">return</span> <span class="str">"hold"</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Pattern riconosciuti e performance</div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Pattern</th><th>Operazioni</th><th>Win Rate</th></tr>
+        </thead>
+        <tbody>
+          {% for p in patterns %}
+          <tr>
+            <td>{{ p.pattern }}</td>
+            <td>{{ p.totale }}</td>
+            <td style="color: {% if p.win_rate > 55 %}var(--green){% elif p.win_rate > 50 %}var(--gold){% else %}var(--red){% endif %}">
+              {{ p.win_rate }}%
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Gestione del rischio (Money Management)</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Stop Loss e Take Profit</h3>
+      <ul>
+        <li>Stop loss medio: <strong style="color:var(--red)">-$40</strong> per operazione</li>
+        <li>Take profit medio: <strong style="color:var(--green)">+$161</strong> per operazione</li>
+        <li>Rapporto rischio/rendimento: <strong style="color:var(--gold)">1:4</strong></li>
+        <li>Lot size: <strong>0.01</strong> (micro lotto)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Statistiche chiave</h3>
+      <ul>
+        <li>Vincita massima singola: <strong style="color:var(--green)">+$161</strong></li>
+        <li>Perdita massima singola: <strong style="color:var(--red)">-$40</strong></li>
+        <li>Vincite consecutive max: <strong>17</strong></li>
+        <li>Perdite consecutive max: <strong>12</strong></li>
+        <li>Tempo medio posizione: <strong>24h 28min</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

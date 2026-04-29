@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}XAU/USD Trading Bot{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="nav-brand">
+    <span class="nav-icon">◈</span>
+    <span>XAU/USD Bot</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="/" class="{% if request.path == '/' %}active{% endif %}">Home</a></li>
+    <li><a href="/come-funziona" class="{% if request.path == '/come-funziona' %}active{% endif %}">Come funziona</a></li>
+    <li><a href="/api" class="{% if request.path == '/api' %}active{% endif %}">API</a></li>
+    <li><a href="/infrastruttura" class="{% if request.path == '/infrastruttura' %}active{% endif %}">Infrastruttura</a></li>
+    <li><a href="/processi" class="{% if request.path == '/processi' %}active{% endif %}">Processi</a></li>
+    <li><a href="/backtest" class="{% if request.path == '/backtest' %}active{% endif %}">Backtest</a></li>
+  </ul>
+</nav>
+
+<main class="main-content">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <p>Progetto di diploma · XAU/USD Algorithmic Trading Bot · {% block materia %}TPSIT · GPOI · Informatica · Sistemi e Reti{% endblock %}</p>
+</footer>
+
+</body>
+</html>

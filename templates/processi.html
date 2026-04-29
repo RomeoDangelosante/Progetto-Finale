@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Processi · XAU/USD Bot{% endblock %}
+{% block materia %}GPOI · Gestione processi e analisi delle performance{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="materia-tag">GPOI</div>
+  <h1>Gestione dei Processi</h1>
+  <p>Diagramma del flusso operativo, gestione del rischio e analisi delle performance mensili.</p>
+</div>
+
+<div class="section">
+  <div class="section-title">Processo operativo del bot (BPMN semplificato)</div>
+  <div class="card">
+    <div style="overflow-x:auto">
+      <div style="display:flex; flex-direction:column; gap:0.5rem; min-width:700px">
+
+        <div style="display:flex; align-items:center; gap:0; background:var(--bg3); border-radius:8px; overflow:hidden">
+          <div style="background:rgba(212,168,67,0.15); padding:0.5rem 1rem; font-size:0.75rem; color:var(--gold); font-weight:600; min-width:120px; text-align:center">INIZIO</div>
+          <div style="padding:0.6rem 1.2rem; font-size:0.85rem; flex:1">Il bot viene avviato — controlla connessione e parametri di configurazione</div>
+        </div>
+
+        <div style="text-align:center; color:var(--gold); font-size:1.2rem">↓</div>
+
+        <div style="display:flex; align-items:center; gap:0; background:var(--bg3); border-radius:8px; overflow:hidden">
+          <div style="background:rgba(74,158,255,0.15); padding:0.5rem 1rem; font-size:0.75rem; color:var(--blue); font-weight:600; min-width:120px; text-align:center">PROCESSO</div>
+          <div style="padding:0.6rem 1.2rem; font-size:0.85rem; flex:1">Recupero dati OHLC via API → analisi struttura del grafico → ricerca pattern</div>
+        </div>
+
+        <div style="text-align:center; color:var(--gold); font-size:1.2rem">↓</div>
+
+        <div style="display:flex; align-items:center; gap:0; background:var(--bg3); border-radius:8px; overflow:hidden">
+          <div style="background:rgba(240,197,90,0.15); padding:0.5rem 1rem; font-size:0.75rem; color:var(--gold2); font-weight:600; min-width:120px; text-align:center">DECISIONE</div>
+          <div style="padding:0.6rem 1.2rem; font-size:0.85rem; flex:1">Segnale rilevato? → Se SÌ: calcola entrata, SL e TP → invia ordine via API</div>
+        </div>
+
+        <div style="text-align:center; color:var(--gold); font-size:1.2rem">↓</div>
+
+        <div style="display:flex; align-items:center; gap:0; background:var(--bg3); border-radius:8px; overflow:hidden">
+          <div style="background:rgba(62,207,142,0.15); padding:0.5rem 1rem; font-size:0.75rem; color:var(--green); font-weight:600; min-width:120px; text-align:center">MONITORAGGIO</div>
+          <div style="padding:0.6rem 1.2rem; font-size:0.85rem; flex:1">Controlla posizione aperta ogni tick → chiude se TP o SL raggiunto</div>
+        </div>
+
+        <div style="text-align:center; color:var(--gold); font-size:1.2rem">↓</div>
+
+        <div style="display:flex; align-items:center; gap:0; background:var(--bg3); border-radius:8px; overflow:hidden">
+          <div style="background:rgba(62,207,142,0.15); padding:0.5rem 1rem; font-size:0.75rem; color:var(--green); font-weight:600; min-width:120px; text-align:center">LOG</div>
+          <div style="padding:0.6rem 1.2rem; font-size:0.85rem; flex:1">Salva risultato nel database → aggiorna statistiche → torna al ciclo di analisi</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Performance mensili</div>
+  <div class="chart-box">
+    <h3>Win rate e profitto per mese</h3>
+    <canvas id="chartPerf" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Mese</th>
+            <th>Operazioni</th>
+            <th>Win rate</th>
+            <th>Profitto ($)</th>
+            <th>Drawdown max</th>
+            <th>Sharpe</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in stats_mensili %}
+          <tr>
+            <td>{{ s.periodo }}</td>
+            <td>{{ s.totale_operazioni }}</td>
+            <td style="color: {% if s.win_rate > 55 %}var(--green){% elif s.win_rate > 50 %}var(--gold){% else %}var(--red){% endif %}">{{ s.win_rate }}%</td>
+            <td style="color: {% if s.profitto_totale > 0 %}var(--green){% else %}var(--red){% endif %}">
+              {% if s.profitto_totale > 0 %}+{% endif %}${{ s.profitto_totale }}
+            </td>
+            <td style="color:var(--red)">{{ s.drawdown_massimo }}%</td>
+            <td>{{ s.sharpe_ratio }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Analisi del rischio</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Metriche di rischio (backtest reale)</h3>
+      <div class="config-row"><span class="config-key">Drawdown massimo</span><span class="config-val" style="color:var(--red)">29.30%</span></div>
+      <div class="config-row"><span class="config-key">Drawdown relativo</span><span class="config-val" style="color:var(--red)">21.66%</span></div>
+      <div class="config-row"><span class="config-key">Fattore di recupero</span><span class="config-val">9.01</span></div>
+      <div class="config-row"><span class="config-key">Indice di Sharpe</span><span class="config-val" style="color:var(--green)">7.51</span></div>
+      <div class="config-row"><span class="config-key">Payoff atteso</span><span class="config-val">7.20</span></div>
+    </div>
+    <div class="card">
+      <h3>Interpretazione dei risultati</h3>
+      <p>Un indice di Sharpe di 7.51 indica un rendimento molto superiore al rischio assunto — valori sopra 1 sono considerati buoni, sopra 3 eccellenti.</p>
+      <p style="margin-top:0.8rem">Il fattore di recupero 9.01 significa che il sistema ha guadagnato 9 volte il suo drawdown massimo — indice di solidità della strategia.</p>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const muted = '#8a8880';
+const gridColor = 'rgba(255,255,255,0.05)';
+const labels = [{% for s in stats_mensili %}"{{ s.periodo }}"{% if not loop.last %},{% endif %}{% endfor %}];
+const profitti = [{% for s in stats_mensili %}{{ s.profitto_totale }}{% if not loop.last %},{% endif %}{% endfor %}];
+const winrates = [{% for s in stats_mensili %}{{ s.win_rate }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+new Chart(document.getElementById('chartPerf'), {
+  type: 'bar',
+  data: {
+    labels,
+    datasets: [
+      {
+        label: 'Profitto ($)',
+        data: profitti,
+        backgroundColor: 'rgba(62,207,142,0.4)',
+        borderColor: '#3ecf8e',
+        borderWidth: 1,
+        borderRadius: 4,
+        yAxisID: 'y',
+      },
+      {
+        label: 'Win rate (%)',
+        data: winrates,
+        type: 'line',
+        borderColor: '#d4a843',
+        backgroundColor: 'transparent',
+        tension: 0.3,
+        pointRadius: 3,
+        borderWidth: 2,
+        yAxisID: 'y1',
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { labels: { color: muted, font: { size: 11 } } } },
+    scales: {
+      x: { ticks: { color: muted }, grid: { color: gridColor } },
+      y: { ticks: { color: muted }, grid: { color: gridColor }, position: 'left' },
+      y1: { ticks: { color: '#d4a843' }, grid: { display: false }, position: 'right', min: 40, max: 70 }
+    }
+  }
+});
+</script>
+{% endblock %}
