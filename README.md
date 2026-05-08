@@ -73,10 +73,8 @@ Il progetto consiste in un sito web che documenta e visualizza il funzionamento 
 ### 3.2 Attori principali
 
 - **Visitatore** — accede al sito, naviga le pagine e visualizza grafici e tabelle senza autenticazione.
-- **Utente (autenticato)** — attore specializzato del Visitatore; in un'estensione futura potrebbe salvare configurazioni personalizzate.
 - **Bot di trading** — attore esterno che legge e scrive dati nel database durante l'esecuzione.
 - **API del broker (MetaTrader 5)** — sistema esterno con cui il bot comunica tramite HTTP/REST.
-- **Amministratore (opzionale)** — potrebbe accedere a una futura area di configurazione protetta.
 
 ---
 
@@ -99,11 +97,11 @@ Il progetto consiste in un sito web che documenta e visualizza il funzionamento 
 
 ### 4.2 User stories
 
-- Come visitatore, voglio vedere le statistiche principali del backtest nella home, così da capire subito le performance del bot.
-- Come visitatore, voglio leggere la documentazione degli endpoint API con esempi di codice Python, così da capire come il bot comunica con il broker.
-- Come visitatore, voglio vedere i grafici del profitto cumulativo e mensile, così da comprendere l'andamento nel tempo.
-- Come visitatore, voglio consultare il diagramma BPMN del processo operativo, così da capire come il bot prende le decisioni.
-- Come studente che presenta il progetto, voglio che ogni pagina riporti la materia di riferimento, così da guidare la commissione durante l'esposizione.
+- Come visitatore, voglio vedere le statistiche principali del backtest nella home, così da capire subito le performance del sistema e l'efficacia del backend.
+- Come visitatore, voglio leggere la documentazione degli endpoint API con esempi di codice Python, così da capire l'architettura REST e le comunicazioni HTTP del sistema.
+- Come visitatore, voglio vedere i grafici del profitto cumulativo e mensile generati dinamicamente, così da comprendere l'andamento dei dati in tempo reale dal database.
+- Come visitatore, voglio consultare il diagramma BPMN del processo operativo, così da capire la logica algoritmica implementata nel backend.
+- Come studente che presenta il progetto, voglio che ogni pagina riporti la materia di riferimento, così da guidare la commissione durante l'esposizione tecnica.
 
 ---
 
@@ -142,18 +140,18 @@ Il progetto consiste in un sito web che documenta e visualizza il funzionamento 
 | ID | Nome | Descrizione |
 |----|------|-------------|
 | UC1 | Visualizza home | Il visitatore apre il sito; Flask legge le statistiche dal DB e renderizza la pagina con operazioni totali, profitto, win rate e Sharpe |
-| UC2 | Come funziona | Il visitatore consulta la logica algoritmica del bot, la struttura dati OHLC, i pattern riconosciuti e le statistiche di money management |
-| UC3 | Documentazione API | Il visitatore legge gli endpoint REST usati dal bot, gli esempi HTTP GET/POST, le risposte JSON e i codici di risposta HTTP |
+| UC2 | Come funziona | Il visitatore consulta la logica algoritmica implementata nel backend, la struttura dati OHLC, i pattern riconosciuti e le statistiche di money management |
+| UC3 | Documentazione API | Il visitatore legge gli endpoint REST del sistema backend, gli esempi HTTP GET/POST, le risposte JSON e i codici di risposta HTTP |
 | UC4 | Infrastruttura | Il visitatore consulta l'architettura di rete (TCP/IP, HTTPS, TLS 1.3) e la tabella di configurazione letta dal DB |
-| UC5 | Processi GPOI | Il visitatore vede il flusso BPMN del bot, le statistiche mensili e le metriche di rischio |
-| UC6 | Backtest e grafici | Il visitatore consulta i 4 grafici Chart.js e la tabella delle prime 50 operazioni simulate |
+| UC5 | Processi GPOI | Il visitatore vede il flusso BPMN del processo operativo, le statistiche mensili calcolate dal database e le metriche di rischio |
+| UC6 | Backtest e grafici | Il visitatore consulta i 4 grafici Chart.js generati dinamicamente e la tabella delle prime 50 operazioni simulate |
 | UC7 | Carica dati JSON | Il browser esegue fetch verso le API interne Flask per alimentare i grafici — **incluso** in UC6 |
 | UC8 | Filtra operazioni | Il visitatore filtra le operazioni per periodo o esito durante la visualizzazione del backtest — **estende** UC6 |
-| UC9 | Analizza grafico | Il bot scarica le candele OHLC via API e analizza la struttura storica per riconoscere pattern |
-| UC10 | Apre ordine | Rilevato un segnale, il bot invia HTTP POST al broker con simbolo, volume, SL e TP — **include** verifica API Key e salvataggio nel DB |
+| UC9 | Analizza grafico | Il sistema backend elabora le candele OHLC via API e analizza la struttura storica per riconoscere pattern |
+| UC10 | Apre ordine | Rilevato un segnale, il backend invia HTTP POST al broker con simbolo, volume, SL e TP — **include** verifica API Key e salvataggio nel DB |
 | UC11 | Verifica API Key | Il sistema verifica l'autenticazione al broker — **incluso** in UC10 e UC13 |
-| UC12 | Salva nel DB | Il bot inserisce il record nelle tabelle operazione e segnale — **incluso** in UC10 |
-| UC13 | Chiude posizione | Quando il prezzo raggiunge TP o SL, il bot invia la chiusura al broker — **include** verifica API Key |
+| UC12 | Salva nel DB | Il backend inserisce il record nelle tabelle operazione e segnale — **incluso** in UC10 |
+| UC13 | Chiude posizione | Quando il prezzo raggiunge TP o SL, il backend invia la chiusura al broker — **include** verifica API Key |
 
 ### 6.3 Relazioni tra casi d'uso: include ed extend
 
@@ -162,7 +160,7 @@ In un diagramma dei casi d'uso si usano due tipi di relazioni aggiuntive:
 - **`<<include>>`**: rappresenta un comportamento obbligatorio riutilizzabile. Un caso d'uso base include un altro quando il suo comportamento è *sempre* eseguito.
 - **`<<extend>>`**: rappresenta un comportamento opzionale o condizionale che si aggiunge al caso d'uso base solo in certe condizioni.
 
-I casi d'uso non devono essere confusi con i rapporti tra attori. Nel progetto, **Utente** è un attore specializzato di **Visitatore**: può fare tutto ciò che fa il Visitatore, più alcune azioni aggiuntive. Questo si modella con una **generalizzazione tra attori**, non con include o extend.
+I casi d'uso non devono essere confusi con i rapporti tra attori. Nel progetto è presente un solo attore umano (**Visitatore**) che può accedere a tutte le pagine del sito senza autenticazione.
 
 Le relazioni `<<include>>` del progetto:
 
@@ -182,7 +180,6 @@ flowchart LR
 
     %% Attori
     V["👤 Visitatore"]
-    U["👤 Utente autenticato"]
     B["🤖 Bot di Trading"]
     API["🌐 API Broker MetaTrader 5"]
 
@@ -211,18 +208,16 @@ flowchart LR
 
     end
 
-    %% Generalizzazione attori
-    V -->|generalizzazione| U
-
-    %% Visitatore → sito
+    %% Visitatore → sito (tutte le pagine)
     V --> UC1
     V --> UC2
     V --> UC3
     V --> UC4
+    V --> UC5
+    V --> UC6
 
-    %% Utente → sito (funzioni aggiuntive)
-    U --> UC5
-    U --> UC6
+    %% Correlazione tra visitatore e bot
+    V -->|interagisce con| B
 
     %% include e extend nel sito
     UC6 -.->|include| UC7

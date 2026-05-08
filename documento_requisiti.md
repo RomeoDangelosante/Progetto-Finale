@@ -177,7 +177,74 @@ Le relazioni `<<extend>>` del progetto:
 
 ### 6.4 Diagramma dei casi d'uso
 
-*(Inserire qui il diagramma Mermaid dal file `casi_duso.md`)*
+```mermaid
+flowchart LR
+
+    %% Attori
+    V["👤 Visitatore"]
+    U["👤 Utente autenticato"]
+    B["🤖 Bot di Trading"]
+    API["🌐 API Broker MetaTrader 5"]
+
+    %% Sistema principale: sito web
+    subgraph Sito["Sito Web — XAU/USD Bot"]
+
+        UC1(("Visualizza home e statistiche"))
+        UC2(("Visualizza come funziona"))
+        UC3(("Visualizza documentazione API"))
+        UC4(("Visualizza infrastruttura di rete"))
+        UC5(("Visualizza processi GPOI"))
+        UC6(("Visualizza backtest e grafici"))
+        UC7(("Carica dati JSON via API interna"))
+        UC8(("Filtra operazioni per periodo"))
+
+    end
+
+    %% Sistema: bot locale
+    subgraph Bot["Bot — PC locale"]
+
+        UC9(("Analizza grafico XAU/USD"))
+        UC10(("Apre ordine buy/sell"))
+        UC11(("Verifica API Key broker"))
+        UC12(("Salva operazione nel DB"))
+        UC13(("Chiude posizione TP/SL"))
+
+    end
+
+    %% Generalizzazione attori
+    V -->|generalizzazione| U
+
+    %% Visitatore → sito
+    V --> UC1
+    V --> UC2
+    V --> UC3
+    V --> UC4
+
+    %% Utente → sito (funzioni aggiuntive)
+    U --> UC5
+    U --> UC6
+
+    %% include e extend nel sito
+    UC6 -.->|include| UC7
+    UC8 -.->|extend| UC6
+
+    %% Bot → bot system
+    B --> UC9
+    B --> UC10
+    B --> UC12
+    B --> UC13
+
+    %% include nel bot
+    UC9 -.->|include| UC10
+    UC10 -.->|include| UC11
+    UC10 -.->|include| UC12
+    UC13 -.->|include| UC11
+    UC13 -.->|include| UC12
+
+    %% Bot → API esterna
+    UC10 --> API
+    UC13 --> API
+```
 
 ---
 
@@ -214,15 +281,38 @@ Il lavoro è organizzato in tre fasi principali:
 
 ### 8.1 Piano di lavoro — 5 settimane
 
-| Settimana | Fase | Attività principali |
-|-----------|------|---------------------|
-| 1 | Analisi | Analisi dei requisiti · scelta del tema · disegno ER e UML · preparazione ambiente di lavoro |
-| 2 | Sviluppo | Configurazione Flask · database SQLite · template base · sistema di navigazione |
-| 3 | Sviluppo | Implementazione pagine TPSIT, Informatica, Sistemi e Reti · route Flask |
-| 4 | Sviluppo | API JSON interne · grafici Chart.js · pagina Backtest · pagina GPOI |
-| 5 | Rifinitura | Testing · correzione bug · documento dei requisiti · diagrammi · preparazione consegna GitHub |
+```mermaid
+gantt
+    title Piano di lavoro — 5 settimane
+    dateFormat YYYY-MM-DD
+    axisFormat %d/%m
 
-Il diagramma di Gantt dettagliato è disponibile nel file `diagrammi.html` allegato al progetto.
+    section Analisi
+    Analisi dei requisiti           :done, 2025-04-28, 2d
+    Progettazione schema ER         :done, 2025-04-29, 2d
+    Diagramma UML delle classi      :done, 2025-04-30, 1d
+    Configurazione ambiente Flask   :done, 2025-04-30, 2d
+
+    section Sviluppo
+    Database SQLite e init_db.py    :done, 2025-05-05, 2d
+    Template base.html e navbar     :done, 2025-05-06, 2d
+    Foglio di stile style.css       :done, 2025-05-07, 1d
+    Route Flask app.py              :done, 2025-05-12, 2d
+    Pagina Informatica              :done, 2025-05-12, 2d
+    Pagina TPSIT                    :done, 2025-05-13, 2d
+    Pagina Sistemi e Reti           :done, 2025-05-14, 2d
+    API JSON interne                :done, 2025-05-19, 1d
+    Integrazione Chart.js           :done, 2025-05-19, 2d
+    Pagina Backtest con grafici     :done, 2025-05-20, 2d
+    Pagina GPOI Processi            :done, 2025-05-21, 2d
+
+    section Rifinitura
+    Documento dei requisiti         :active, 2025-05-26, 2d
+    Diagrammi casi d uso e Gantt    :active, 2025-05-27, 1d
+    Testing e correzione bug        :         2025-05-28, 2d
+    Preparazione esposizione orale  :         2025-05-29, 1d
+    Consegna finale                 :milestone, 2025-05-30, 0d
+```
 
 ---
 
@@ -314,7 +404,96 @@ Di seguito un diagramma semplificato delle classi principali del dominio dell'ap
 
 ---
 
-## 11. Suggerimenti per la consegna
+## 11. Guida all'installazione e avvio
+
+### 11.1 Prerequisiti
+
+Prima di eseguire il progetto, è necessario installare:
+
+| Software | Versione minima | Note |
+|----------|-----------------|------|
+| Python | 3.8 o superiore | Scaricabile da python.org |
+| pip | Ultima versione | Incluso con Python 3.4+ |
+
+### 11.2 Installazione delle dipendenze
+
+1. Clonare il repository o scaricare i file sorgente.
+2. Aprire un terminale nella cartella del progetto.
+3. Installare le dipendenze Python eseguendo:
+
+```bash
+pip install flask
+```
+
+Opzionale: creare un ambiente virtuale per isolare le dipendenze:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+# source .venv/bin/activate  # Linux/Mac
+pip install flask
+```
+
+### 11.3 Inizializzazione del database
+
+Eseguire lo script di inizializzazione per creare il database SQLite con i dati del backtest:
+
+```bash
+python init_db.py
+```
+
+Questo comando crea il file `trading.db` con le tabelle e i dati di esempio.
+
+### 11.4 Avvio del server Flask
+
+Avviare il server di sviluppo:
+
+```bash
+python app.py
+```
+
+Il server sarà disponibile all'indirizzo: **http://127.0.0.1:5000**
+
+### 11.5 Verifica del funzionamento
+
+Dopo l'avvio, verificare che tutte le pagine siano accessibili:
+
+| Pagina | URL |
+|--------|-----|
+| Home | http://127.0.0.1:5000/ |
+| Come funziona | http://127.0.0.1:5000/come-funziona |
+| API | http://127.0.0.1:5000/api |
+| Infrastruttura | http://127.0.0.1:5000/infrastruttura |
+| Processi | http://127.0.0.1:5000/processi |
+| Backtest | http://127.0.0.1:5000/backtest |
+
+### 11.6 Struttura dei file principali
+
+```
+trading_bot/
+├── app.py              # Applicazione Flask principale
+├── init_db.py          # Script di inizializzazione database
+├── trading.db          # Database SQLite (generato automaticamente)
+├── .env                # Variabili di ambiente (da creare)
+├── .gitignore          # File esclusi dal versionamento
+├── templates/          # Template HTML Jinja2
+│   ├── base.html
+│   ├── index.html
+│   ├── come-funziona.html
+│   ├── api.html
+│   ├── infrastruttura.html
+│   ├── processi.html
+│   └── backtest.html
+└── static/
+    ├── css/
+    │   └── style.css
+    └── js/
+        └── (file JavaScript)
+```
+
+---
+
+## 12. Suggerimenti per la consegna
 
 - Caricare il progetto su GitHub con struttura chiara e file `README.md` con istruzioni di avvio.
 - Usare `.gitignore` per escludere `__pycache__`, `.venv`, `instance/` e il file `.env` con le API key.
